@@ -23,37 +23,38 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 if (isset($data->email) && isset($data->password)) {
     $email = trim($data->email);
     $password = trim($data->password);
+    $password_hashed = sha1($password); // Hash password dengan sha1
 
-    // Query untuk memeriksa user di tabel users
-    $sql = "SELECT user_id, nama, email, password, nomor_hp, level_id FROM users WHERE email = ?";
-    
+    // Query untuk memeriksa user di tabel tb_admin, tb_siswa, tb_guru
+    $sql = "
+        SELECT admin_id AS user_id, nama, email, password, 'admin' AS role FROM tb_admin WHERE email = ? AND password = ?
+        UNION
+        SELECT siswa_id AS user_id, nama, email, password, 'siswa' AS role FROM tb_siswa WHERE email = ? AND password = ?
+        UNION
+        SELECT guru_id AS user_id, nama, email, password, 'guru' AS role FROM tb_guru WHERE email = ? AND password = ?;
+    ";
+
     $stmt = $conn->prepare($sql);
     if ($stmt) {
-        $stmt->bind_param("s", $email);
+        $stmt->bind_param("ssssss", $email, $password_hashed, $email, $password_hashed, $email, $password_hashed);
         $stmt->execute();
         $res = $stmt->get_result();
 
         if ($res->num_rows > 0) {
             $user = $res->fetch_assoc();
 
-            // Verifikasi password
-            if (md5($password) === $user['password']) { 
-                $response = array(
-                    "status" => true,
-                    "message" => "Login berhasil",
-                    "role" => (int)$user['level_id'],
-                    "user" => array(
-                        "id" => (int)$user['user_id'],
-                        "nama" => $user['nama'],
-                        "email" => $user['email'],
-                        "nomor_hp" => $user['nomor_hp'] ?? ''
-                    )
-                );
-            } else {
-                $response["message"] = "Password salah";
-            }
+            $response = array(
+                "status" => true,
+                "message" => "Login berhasil",
+                "role" => $user['role'],
+                "user" => array(
+                    "id" => (int)$user['user_id'],
+                    "nama" => $user['nama'],
+                    "email" => $user['email']
+                )
+            );
         } else {
-            $response["message"] = "User tidak ditemukan";
+            $response["message"] = "User tidak ditemukan atau password salah";
         }
 
         // Menutup statement
