@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 04, 2024 at 03:16 AM
+-- Generation Time: Nov 04, 2024 at 01:27 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -179,6 +179,21 @@ CREATE TABLE `tb_mapel` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `tb_notifikasi`
+--
+
+CREATE TABLE `tb_notifikasi` (
+  `notif_id` int NOT NULL,
+  `judul` varchar(50) NOT NULL,
+  `isi` text NOT NULL,
+  `tanggal_kirim` date NOT NULL,
+  `guru_id` int NOT NULL,
+  `kelas_id` int NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tb_pengumpulan_tugas`
 --
 
@@ -326,6 +341,14 @@ ALTER TABLE `tb_mapel`
   ADD PRIMARY KEY (`mapel_id`);
 
 --
+-- Indexes for table `tb_notifikasi`
+--
+ALTER TABLE `tb_notifikasi`
+  ADD PRIMARY KEY (`notif_id`),
+  ADD KEY `guru_id` (`guru_id`,`kelas_id`),
+  ADD KEY `kelas_id` (`kelas_id`);
+
+--
 -- Indexes for table `tb_pengumpulan_tugas`
 --
 ALTER TABLE `tb_pengumpulan_tugas`
@@ -423,6 +446,12 @@ ALTER TABLE `tb_mapel`
   MODIFY `mapel_id` int NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `tb_notifikasi`
+--
+ALTER TABLE `tb_notifikasi`
+  MODIFY `notif_id` int NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `tb_pengumpulan_tugas`
 --
 ALTER TABLE `tb_pengumpulan_tugas`
@@ -496,6 +525,13 @@ ALTER TABLE `tb_kursus`
 ALTER TABLE `tb_latihan_soal`
   ADD CONSTRAINT `tb_latihan_soal_ibfk_1` FOREIGN KEY (`mapel_id`) REFERENCES `tb_mapel` (`mapel_id`),
   ADD CONSTRAINT `tb_latihan_soal_ibfk_2` FOREIGN KEY (`guru_id`) REFERENCES `tb_guru` (`guru_id`);
+
+--
+-- Constraints for table `tb_notifikasi`
+--
+ALTER TABLE `tb_notifikasi`
+  ADD CONSTRAINT `tb_notifikasi_ibfk_1` FOREIGN KEY (`guru_id`) REFERENCES `tb_guru` (`guru_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tb_notifikasi_ibfk_2` FOREIGN KEY (`kelas_id`) REFERENCES `tb_kelas` (`kelas_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `tb_pengumpulan_tugas`
