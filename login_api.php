@@ -25,13 +25,32 @@ if (isset($data->email) && isset($data->password)) {
     $password = trim($data->password);
     $password_hashed = sha1($password); // Hash password dengan sha1
 
-    // Query untuk memeriksa user di tabel tb_admin, tb_siswa, tb_guru
+    // Query untuk memeriksa user di tabel tb_siswa, tb_guru, dan tb_admin dengan join untuk nama_kelas
     $sql = "
-        SELECT admin_id AS user_id, nama, email, password, 'admin' AS role FROM tb_admin WHERE email = ? AND password = ?
+        SELECT admin_id AS user_id, nama, email, 'admin' AS role, NULL AS kelas_mapel, NULL AS nisn_nipd 
+        FROM tb_admin 
+        WHERE email = ? AND password = ?
         UNION
-        SELECT siswa_id AS user_id, nama, email, password, 'siswa' AS role FROM tb_siswa WHERE email = ? AND password = ?
+        SELECT 
+            siswa_id AS user_id, 
+            tb_siswa.nama, 
+            tb_siswa.email, 
+            'siswa' AS role, 
+            tb_kelas.nama_kelas AS kelas_mapel, 
+            tb_siswa.NISN AS nisn_nipd 
+        FROM tb_siswa 
+        LEFT JOIN tb_kelas ON tb_siswa.kelas_id = tb_kelas.kelas_id 
+        WHERE tb_siswa.email = ? AND tb_siswa.password = ?
         UNION
-        SELECT guru_id AS user_id, nama, email, password, 'guru' AS role FROM tb_guru WHERE email = ? AND password = ?;
+        SELECT 
+            guru_id AS user_id, 
+            nama, 
+            email, 
+            'guru' AS role, 
+            jabatan AS kelas_mapel, 
+            NIP AS nisn_nipd 
+        FROM tb_guru 
+        WHERE email = ? AND password = ?;
     ";
 
     $stmt = $conn->prepare($sql);
@@ -50,7 +69,9 @@ if (isset($data->email) && isset($data->password)) {
                 "user" => array(
                     "id" => (int)$user['user_id'],
                     "nama" => $user['nama'],
-                    "email" => $user['email']
+                    "email" => $user['email'],
+                    "kelas_mapel" => $user['kelas_mapel'], // nama_kelas untuk siswa atau jabatan untuk guru
+                    "nisn_nipd" => $user['nisn_nipd'] // NISN untuk siswa atau NIP untuk guru
                 )
             );
         } else {
